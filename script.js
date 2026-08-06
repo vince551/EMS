@@ -1,3 +1,4 @@
+
 // Initialize Lucide Icons
 lucide.createIcons();
 
@@ -50,6 +51,9 @@ function handleLogin(e) {
 
   applyRoleAccess();
   document.getElementById('auth-screen').style.display = 'none';
+  
+  // Default to Dashboard view on login
+  showTab('dashboard');
   logActivity(`User ${currentUser.name} logged in as ${currentUser.role}`);
   renderAll();
 }
@@ -62,6 +66,7 @@ function applyRoleAccess() {
   const adminHrElements = document.querySelectorAll('.admin-hr-only');
   const adminElements = document.querySelectorAll('.admin-only');
 
+  // Standardize visibility rules for role classes
   adminHrElements.forEach(el => {
     el.style.display = (currentUser.role === 'Admin' || currentUser.role === 'HR Manager') ? '' : 'none';
   });
@@ -71,13 +76,31 @@ function applyRoleAccess() {
   });
 }
 
-// TAB NAVIGATION
+// TAB NAVIGATION ENGINE
 function showTab(tabId, event) {
-  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+  // Hide all tab sections
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.classList.remove('active');
+  });
 
-  document.getElementById(`${tabId}-tab`).classList.add('active');
-  if (event) event.currentTarget.classList.add('active');
+  // Deactivate all navbar links
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.classList.remove('active');
+  });
+
+  // Activate target tab content
+  const targetTab = document.getElementById(`${tabId}-tab`);
+  if (targetTab) {
+    targetTab.classList.add('active');
+  }
+
+  // Highlight corresponding navbar button
+  if (event) {
+    event.currentTarget.classList.add('active');
+  } else {
+    const defaultNavBtn = document.querySelector(`.nav-item[onclick*="${tabId}"]`);
+    if (defaultNavBtn) defaultNavBtn.classList.add('active');
+  }
 }
 
 // RENDER ALL DATA MODULES
@@ -90,6 +113,7 @@ function renderAll() {
   renderPayroll();
   renderPerformance();
   populateDropdowns();
+  applyRoleAccess();
 }
 
 // 1. DASHBOARD ENGINE
@@ -105,7 +129,7 @@ function renderDashboard() {
   const totalPayroll = employees.reduce((acc, curr) => acc + (curr.salary / 12), 0);
   document.getElementById('dash-payroll-total').textContent = `$${Math.round(totalPayroll).toLocaleString()}`;
 
-  // Render Department Stats List
+  // Department Stats List
   const deptList = document.getElementById('departmentStatsList');
   deptList.innerHTML = '';
   departments.forEach(dept => {
@@ -117,13 +141,13 @@ function renderDashboard() {
           <span>${empCount} Members</span>
         </div>
         <div style="width: 100%; height: 6px; background: var(--border); border-radius: 3px;">
-          <div style="width: ${(empCount / employees.length) * 100}%; height: 100%; background: var(--primary); border-radius: 3px;"></div>
+          <div style="width: ${(empCount / (employees.length || 1)) * 100}%; height: 100%; background: var(--primary); border-radius: 3px;"></div>
         </div>
       </div>
     `;
   });
 
-  // Render Activities Feed
+  // Activities Feed
   const actList = document.getElementById('activityFeedList');
   actList.innerHTML = '';
   activities.slice(-4).reverse().forEach(act => {
@@ -136,7 +160,7 @@ function renderDashboard() {
   });
 }
 
-// 2. EMPLOYEE CRUD & SEARCH ENGINE
+// 2. EMPLOYEE CRUD ENGINE
 function renderEmployees(data = employees) {
   const grid = document.getElementById('employeeGrid');
   grid.innerHTML = '';
@@ -158,7 +182,7 @@ function renderEmployees(data = employees) {
         ${(currentUser.role === 'Admin' || currentUser.role === 'HR Manager') ? `
           <div class="flex-end" style="gap: 8px; margin-top: 10px;">
             <button class="btn btn-secondary btn-sm" onclick="editEmployee('${emp.id}')">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${emp.id}')">Delete</button>
+            ${currentUser.role === 'Admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteEmployee('${emp.id}')">Delete</button>` : ''}
           </div>
         ` : ''}
       </div>
@@ -271,7 +295,7 @@ function deleteDepartment(id) {
   }
 }
 
-// 4. ATTENDANCE ENGINE (Mobile / GPS Simulated)
+// 4. ATTENDANCE ENGINE
 function toggleClock() {
   const btn = document.getElementById('clockBtn');
   const status = document.getElementById('clockStatus');
@@ -369,15 +393,20 @@ function updateLeaveStatus(id, newStatus) {
   renderAll();
 }
 
-// 6. PAYROLL AUTOMATION ENGINE
+// 6. PAYROLL ENGINE
 function renderPayroll() {
   const tbody = document.getElementById('payrollTable');
   tbody.innerHTML = '';
 
-  employees.forEach(emp => {
+  // Employee role sees only their own payroll line item if applicable
+  const visibleEmployees = (currentUser.role === 'Employee') 
+    ? employees.filter(e => e.name.toLowerCase() === currentUser.name.toLowerCase()) 
+    : employees;
+
+  visibleEmployees.forEach(emp => {
     const monthlyBasic = Math.round(emp.salary / 12);
-    const allowance = Math.round(monthlyBasic * 0.10); // 10% Allowance
-    const tax = Math.round(monthlyBasic * 0.15); // 15% Tax Deduction
+    const allowance = Math.round(monthlyBasic * 0.10);
+    const tax = Math.round(monthlyBasic * 0.15);
     const netSalary = monthlyBasic + allowance - tax;
 
     tbody.innerHTML += `
@@ -427,7 +456,7 @@ Status         : PAID
   anchor.click();
 }
 
-// 7. PERFORMANCE MANAGEMENT ENGINE
+// 7. PERFORMANCE ENGINE
 function renderPerformance() {
   const tbody = document.getElementById('performanceTable');
   tbody.innerHTML = '';
@@ -461,23 +490,23 @@ function saveReview(e) {
   renderAll();
 }
 
-// HELPERS & MODAL CONTROLS
+// HELPERS & MODALS
 function populateDropdowns() {
   const deptSelect = document.getElementById('empDept');
   const deptFilter = document.getElementById('empDeptFilter');
   const reviewEmpSelect = document.getElementById('reviewEmpSelect');
 
-  deptSelect.innerHTML = '';
-  deptFilter.innerHTML = '<option value="All">All Departments</option>';
-  reviewEmpSelect.innerHTML = '';
+  if (deptSelect) deptSelect.innerHTML = '';
+  if (deptFilter) deptFilter.innerHTML = '<option value="All">All Departments</option>';
+  if (reviewEmpSelect) reviewEmpSelect.innerHTML = '';
 
   departments.forEach(d => {
-    deptSelect.innerHTML += `<option value="${d.name}">${d.name}</option>`;
-    deptFilter.innerHTML += `<option value="${d.name}">${d.name}</option>`;
+    if (deptSelect) deptSelect.innerHTML += `<option value="${d.name}">${d.name}</option>`;
+    if (deptFilter) deptFilter.innerHTML += `<option value="${d.name}">${d.name}</option>`;
   });
 
   employees.forEach(e => {
-    reviewEmpSelect.innerHTML += `<option value="${e.name}">${e.name}</option>`;
+    if (reviewEmpSelect) reviewEmpSelect.innerHTML += `<option value="${e.name}">${e.name}</option>`;
   });
 }
 
