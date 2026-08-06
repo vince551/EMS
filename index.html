@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enterprise EMS Portal</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <div id="auth-screen" class="auth-overlay">
+    <div class="card auth-card">
+      <div class="brand-title">🚀 Enterprise EMS</div>
+      <p class="text-muted" style="margin-bottom: 1.5rem;">Select a role to simulate JWT Login</p>
+      
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Select User Role</label>
+          <select id="roleSelect" class="form-control">
+            <option value="Admin">👑 Admin (Full Access)</option>
+            <option value="HR Manager">👩‍💼 HR Manager (HR & Payroll)</option>
+            <option value="Employee">👨‍💻 Employee (Self-Service)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="loginEmail" class="form-control" value="admin@company.com" required />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" class="form-control" value="••••••••" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Log In to Portal</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-container">
+    
+    <aside class="sidebar">
+      <div class="brand">EMS Portal</div>
+      
+      <nav class="nav-links">
+        <a href="#" class="nav-item active" onclick="showTab('dashboard', event)">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="#" class="nav-item admin-hr-only" onclick="showTab('employees', event)">
+          <i data-lucide="users"></i> Employees
+        </a>
+        <a href="#" class="nav-item admin-hr-only" onclick="showTab('departments', event)">
+          <i data-lucide="building-2"></i> Departments
+        </a>
+        <a href="#" class="nav-item" onclick="showTab('attendance', event)">
+          <i data-lucide="clock"></i> Attendance
+        </a>
+        <a href="#" class="nav-item" onclick="showTab('leave', event)">
+          <i data-lucide="calendar"></i> Leave Requests
+        </a>
+        <a href="#" class="nav-item" onclick="showTab('payroll', event)">
+          <i data-lucide="dollar-sign"></i> Payroll
+        </a>
+        <a href="#" class="nav-item" onclick="showTab('performance', event)">
+          <i data-lucide="award"></i> Performance
+        </a>
+      </nav>
+
+      <div class="user-profile">
+        <div class="flex-between">
+          <div>
+            <div id="user-name-display" style="font-weight: 600; color: #fff;">John Doe</div>
+            <div id="user-role-display" style="font-size: 0.75rem; color: #94a3b8;">Admin</div>
+          </div>
+          <button onclick="handleLogout()" class="btn-icon" title="Logout"><i data-lucide="log-out"></i></button>
+        </div>
+        <button id="themeToggleBtn" onclick="toggleDarkMode()" class="btn btn-secondary btn-sm" style="margin-top: 10px; width: 100%;">
+          🌙 Dark Mode
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <div id="notification-banner" class="notification-banner">
+        <div class="flex-between">
+          <span id="notification-text">🔔 Notification: System Maintenance scheduled for midnight.</span>
+          <button onclick="dismissNotification()" class="btn-icon">&times;</button>
+        </div>
+      </div>
+
+      <section id="dashboard-tab" class="tab-content active">
+        <div class="header">
+          <h1>Enterprise Dashboard</h1>
+          <p class="text-muted">Real-time HR operations & organizational analytics</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="card stat-card">
+            <span class="text-muted">Total Employees</span>
+            <div class="stat-number" id="dash-total-emp">0</div>
+            <span class="stat-change">+12% this month</span>
+          </div>
+          <div class="card stat-card">
+            <span class="text-muted">Present Today</span>
+            <div class="stat-number" id="dash-present-emp">0</div>
+            <span class="stat-change" style="color: var(--success);" id="dash-present-rate">0% rate</span>
+          </div>
+          <div class="card stat-card">
+            <span class="text-muted">Employees on Leave</span>
+            <div class="stat-number" id="dash-leave-emp">0</div>
+            <span class="stat-change" style="color: var(--warning);" id="dash-pending-leave">0 Pending</span>
+          </div>
+          <div class="card stat-card">
+            <span class="text-muted">Monthly Payroll</span>
+            <div class="stat-number" id="dash-payroll-total">$0</div>
+            <span class="stat-change">Automated Engine</span>
+          </div>
+        </div>
+
+        <div class="dashboard-split" style="margin-top: 1.5rem;">
+          <div class="card">
+            <h3>Department Employee Count</h3>
+            <div id="departmentStatsList" style="margin-top: 1rem;"></div>
+          </div>
+          <div class="card">
+            <h3>Recent System Activities</h3>
+            <div id="activityFeedList" class="leave-list" style="margin-top: 1rem;"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="employees-tab" class="tab-content">
+        <div class="header flex-between">
+          <div>
+            <h1>Employee Directory</h1>
+            <p class="text-muted">Store, filter, and manage staff records</p>
+          </div>
+          <button class="btn btn-primary admin-hr-only" onclick="toggleEmpModal(true)">+ Add Employee</button>
+        </div>
+
+        <div class="card flex-between" style="gap: 1rem; margin-bottom: 1.5rem;">
+          <input type="text" id="empSearchInput" placeholder="Search by name, email, or ID..." onkeyup="filterEmployees()" class="form-control" style="flex: 1;" />
+          <select id="empDeptFilter" onchange="filterEmployees()" class="form-control" style="width: 200px;">
+            <option value="All">All Departments</option>
+          </select>
+        </div>
+
+        <div class="employee-grid" id="employeeGrid"></div>
+      </section>
+
+      <section id="departments-tab" class="tab-content">
+        <div class="header flex-between">
+          <div>
+            <h1>Department Management</h1>
+            <p class="text-muted">Manage department structures, managers, and budgets</p>
+          </div>
+          <button class="btn btn-primary admin-only" onclick="toggleDeptModal(true)">+ Create Department</button>
+        </div>
+
+        <div class="card table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Department Name</th>
+                <th>Manager</th>
+                <th>Employees</th>
+                <th>Budget</th>
+                <th class="admin-only">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="departmentsTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="attendance-tab" class="tab-content">
+        <div class="header">
+          <h1>Attendance Management</h1>
+          <p class="text-muted">GPS/Mobile simulated Check-in, Working Hours, and Overtime engine</p>
+        </div>
+
+        <div class="card flex-between">
+          <div>
+            <h3>Daily Attendance Portal</h3>
+            <p id="clockStatus" class="text-muted">You are currently clocked out.</p>
+          </div>
+          <button id="clockBtn" class="btn btn-success" onclick="toggleClock()">Clock In</button>
+        </div>
+
+        <div class="card table-container" style="margin-top: 1.5rem;">
+          <h3>Attendance Logs</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Working Hours</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="leave-tab" class="tab-content">
+        <div class="header flex-between">
+          <div>
+            <h1>Leave Request System</h1>
+            <p class="text-muted">Manage Casual, Sick, Paid, and Unpaid leaves</p>
+          </div>
+          <button class="btn btn-primary" onclick="toggleLeaveModal(true)">+ Apply for Leave</button>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 1.5rem;">
+          <div class="card"><span>Casual Leave Balance</span><h2 id="bal-casual">12 / 12</h2></div>
+          <div class="card"><span>Sick Leave Balance</span><h2 id="bal-sick">10 / 10</h2></div>
+          <div class="card"><span>Paid Leave Balance</span><h2 id="bal-paid">20 / 20</h2></div>
+        </div>
+
+        <div class="card">
+          <h3>Leave Applications</h3>
+          <div id="leaveList" class="leave-list" style="margin-top: 1rem;"></div>
+        </div>
+      </section>
+
+      <section id="payroll-tab" class="tab-content">
+        <div class="header flex-between">
+          <div>
+            <h1>Payroll Engine</h1>
+            <p class="text-muted">Automatic salary calculations, bonuses, deductions, and payslip generation</p>
+          </div>
+          <button class="btn btn-primary admin-hr-only" onclick="processPayroll()">⚡ Process Monthly Payroll</button>
+        </div>
+
+        <div class="card table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Basic Salary</th>
+                <th>Allowances</th>
+                <th>Tax Deductions</th>
+                <th>Net Salary</th>
+                <th>Status</th>
+                <th>Payslip</th>
+              </tr>
+            </thead>
+            <tbody id="payrollTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="performance-tab" class="tab-content">
+        <div class="header flex-between">
+          <div>
+            <h1>Performance Reviews & Goals</h1>
+            <p class="text-muted">Employee appraisal system, ratings, and feedback</p>
+          </div>
+          <button class="btn btn-primary admin-hr-only" onclick="toggleReviewModal(true)">+ New Review</button>
+        </div>
+
+        <div class="card table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Reviewer</th>
+                <th>Rating</th>
+                <th>Feedback</th>
+                <th>Goal Status</th>
+              </tr>
+            </thead>
+            <tbody id="performanceTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div id="empModal" class="modal-overlay">
+    <div class="card modal-box">
+      <h2 id="empModalTitle">Add New Employee</h2>
+      <form id="empForm" onsubmit="saveEmployee(event)">
+        <input type="hidden" id="empEditId" />
+        <div class="form-group"><label>Full Name</label><input type="text" id="empName" class="form-control" required /></div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="empEmail" class="form-control" required /></div>
+        <div class="form-group"><label>Phone Number</label><input type="text" id="empPhone" class="form-control" required /></div>
+        <div class="form-group"><label>Department</label><select id="empDept" class="form-control"></select></div>
+        <div class="form-group"><label>Designation</label><input type="text" id="empRole" class="form-control" required /></div>
+        <div class="form-group"><label>Base Monthly Salary ($)</label><input type="number" id="empSalary" class="form-control" required /></div>
+        <div class="flex-end" style="gap: 10px; margin-top: 1rem;">
+          <button type="button" class="btn btn-secondary" onclick="toggleEmpModal(false)">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="deptModal" class="modal-overlay">
+    <div class="card modal-box">
+      <h2>Create Department</h2>
+      <form onsubmit="saveDepartment(event)">
+        <div class="form-group"><label>Department Name</label><input type="text" id="deptName" class="form-control" required /></div>
+        <div class="form-group"><label>Assign Manager</label><input type="text" id="deptManager" class="form-control" required /></div>
+        <div class="form-group"><label>Annual Budget ($)</label><input type="number" id="deptBudget" class="form-control" required /></div>
+        <div class="flex-end" style="gap: 10px; margin-top: 1rem;">
+          <button type="button" class="btn btn-secondary" onclick="toggleDeptModal(false)">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Department</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="leaveModal" class="modal-overlay">
+    <div class="card modal-box">
+      <h2>Apply for Leave</h2>
+      <form onsubmit="applyLeave(event)">
+        <div class="form-group">
+          <label>Leave Type</label>
+          <select id="leaveType" class="form-control">
+            <option value="Casual Leave">Casual Leave</option>
+            <option value="Sick Leave">Sick Leave</option>
+            <option value="Paid Leave">Paid Leave</option>
+            <option value="Unpaid Leave">Unpaid Leave</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Start Date</label><input type="date" id="leaveStart" class="form-control" required /></div>
+        <div class="form-group"><label>End Date</label><input type="date" id="leaveEnd" class="form-control" required /></div>
+        <div class="form-group"><label>Reason</label><textarea id="leaveReason" class="form-control" rows="3" required></textarea></div>
+        <div class="flex-end" style="gap: 10px; margin-top: 1rem;">
+          <button type="button" class="btn btn-secondary" onclick="toggleLeaveModal(false)">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="reviewModal" class="modal-overlay">
+    <div class="card modal-box">
+      <h2>Conduct Performance Review</h2>
+      <form onsubmit="saveReview(event)">
+        <div class="form-group"><label>Employee</label><select id="reviewEmpSelect" class="form-control"></select></div>
+        <div class="form-group"><label>Rating (1 - 5 Stars)</label><input type="number" min="1" max="5" id="reviewRating" class="form-control" required /></div>
+        <div class="form-group"><label>Manager Feedback</label><textarea id="reviewFeedback" class="form-control" rows="3" required></textarea></div>
+        <div class="form-group"><label>Goal Set</label><input type="text" id="reviewGoal" class="form-control" placeholder="e.g. Complete AWS Certification" required /></div>
+        <div class="flex-end" style="gap: 10px; margin-top: 1rem;">
+          <button type="button" class="btn btn-secondary" onclick="toggleReviewModal(false)">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Review</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
