@@ -1,23 +1,23 @@
 <div align="center">
 
 # 🧩 ENTERPRISE EMPLOYEE MANAGEMENT SYSTEM
-### **HR · Payroll · Attendance · Performance · Analytics**
+### HR · PAYROLL · ATTENDANCE · PERFORMANCE · ANALYTICS
 
 ![Status](https://img.shields.io/badge/STATUS-ACTIVE-00FF88?style=for-the-badge)
 ![Frontend](https://img.shields.io/badge/FRONTEND-HTML5%20%7C%20CSS3%20%7C%20JS-111111?style=for-the-badge)
 ![Architecture](https://img.shields.io/badge/ARCHITECTURE-MODULAR-6366F1?style=for-the-badge)
 
-**An executive-style workforce operations portal designed to turn complex HR workflows into a clean digital experience.**
+**An executive-style workforce operations portal designed to turn complex HR workflows into a clear digital experience.**
 
 </div>
 
 ---
 
-## ✦ Overview
+## 🎯 Product Overview
 
-EMS brings employee management workflows into one responsive dashboard for **Administrators, HR Managers and Employees**.
+EMS brings employee-management workflows into one responsive dashboard for **Administrators, HR Managers and Employees**.
 
-## 🚀 Core Modules
+### Core modules
 
 - 👑 Role-Based Access Control
 - 💰 Payroll calculations and payslip generation
@@ -28,17 +28,42 @@ EMS brings employee management workflows into one responsive dashboard for **Adm
 - 📊 HR analytics and activity feeds
 - 🌙 Dark / light executive interface
 
+## 🏗️ Architecture
+
+```text
+                    EMS
+                     │
+        ┌────────────┼────────────┐
+        ↓            ↓            ↓
+   Admin Portal   HR Portal   Employee Portal
+        │            │            │
+        └────────────┼────────────┘
+                     ↓
+              Application State
+                     ↓
+        Payroll · Attendance · Leave
+        Performance · Departments
+```
+
+The current implementation uses a modular frontend architecture. A production deployment should move sensitive authorization and business logic to trusted server-side services.
+
 ## 🛠️ Stack
 
 `HTML5` · `CSS3` · `Vanilla JavaScript ES6+` · `Lucide Icons` · `Flexbox` · `CSS Grid`
 
-## 🧠 Architecture
+## 🔐 Production Security Checklist
 
-The application uses a modular component pattern with local state management and a responsive executive design system.
+Before handling real employee data, implement:
 
-## 🔐 Production Considerations
+- Server-side authorization and role enforcement
+- Secure authentication/session management
+- Input validation and output encoding
+- Audit logging
+- Encryption in transit and at rest
+- Backups and recovery procedures
+- Privacy/data-retention controls
 
-Before production deployment, sensitive HR data should be protected with server-side authorization, secure authentication, validated inputs, audit logging, encrypted transport/storage and appropriate privacy controls.
+**Do not use the current frontend alone as a security boundary.**
 
 ## 🚀 Clone
 
@@ -48,6 +73,15 @@ cd EMS
 ```
 
 Use the project's current frontend workflow to serve the application locally.
+
+## 🗺️ Roadmap
+
+- [ ] Backend API
+- [ ] Secure authentication
+- [ ] Persistent database layer
+- [ ] Automated payroll workflows
+- [ ] Reporting/export system
+- [ ] Production-grade audit logging
 
 ## 👨‍💻 Builder
 
