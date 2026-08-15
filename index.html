@@ -1,359 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Enterprise EMS Portal</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://unpkg.com/lucide@latest"></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Enterprise Employee Management System">
+<title>EMS — Employee Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <div id="auth-screen" class="auth-overlay">
-    <div class="card auth-card">
-      <div class="brand-title">🚀 Enterprise EMS</div>
-      <p class="text-muted" style="margin-bottom: 1.5rem;">Select a role to simulate JWT Login</p>
-      
-      <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label>Select User Role</label>
-          <select id="roleSelect" class="form-control">
-            <option value="Admin">👑 Admin (Full Access)</option>
-            <option value="HR Manager">👩‍💼 HR Manager (HR & Payroll)</option>
-            <option value="Employee">👨‍💻 Employee (Self-Service)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Email Address</label>
-          <input type="email" id="loginEmail" class="form-control" value="admin@company.com" required />
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" class="form-control" value="••••••••" required />
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Log In to Portal</button>
-      </form>
-    </div>
+<div id="toast"></div>
+<div id="login" class="login-screen">
+  <div class="login-card">
+    <div class="logo">EMS</div><h1>Employee Management System</h1>
+    <p>Secure HR operations, workforce analytics and employee self-service.</p>
+    <form id="loginForm">
+      <label>Email<input id="loginEmail" type="email" value="admin@ems.local" required></label>
+      <label>Password<input id="loginPassword" type="password" value="password" required></label>
+      <label>Role<select id="loginRole"><option>Admin</option><option>HR Manager</option><option>Employee</option></select></label>
+      <button class="primary full" type="submit">Sign in</button>
+    </form>
+    <small>Demo mode: data is stored in this browser using localStorage.</small>
   </div>
-
-  <div class="app-container">
-    
-    <aside class="sidebar">
-      <div class="brand">EMS Portal</div>
-      
-      <nav class="nav-links">
-        <a href="#" class="nav-item active" onclick="showTab('dashboard', event)">
-          <i data-lucide="layout-dashboard"></i> Dashboard
-        </a>
-        <a href="#" class="nav-item admin-hr-only" onclick="showTab('employees', event)">
-          <i data-lucide="users"></i> Employees
-        </a>
-        <a href="#" class="nav-item admin-hr-only" onclick="showTab('departments', event)">
-          <i data-lucide="building-2"></i> Departments
-        </a>
-        <a href="#" class="nav-item" onclick="showTab('attendance', event)">
-          <i data-lucide="clock"></i> Attendance
-        </a>
-        <a href="#" class="nav-item" onclick="showTab('leave', event)">
-          <i data-lucide="calendar"></i> Leave Requests
-        </a>
-        <a href="#" class="nav-item" onclick="showTab('payroll', event)">
-          <i data-lucide="dollar-sign"></i> Payroll
-        </a>
-        <a href="#" class="nav-item" onclick="showTab('performance', event)">
-          <i data-lucide="award"></i> Performance
-        </a>
-      </nav>
-
-      <div class="user-profile">
-        <div class="flex-between">
-          <div>
-            <div id="user-name-display" style="font-weight: 600; color: #fff;">John Doe</div>
-            <div id="user-role-display" style="font-size: 0.75rem; color: #94a3b8;">Admin</div>
-          </div>
-          <button onclick="handleLogout()" class="btn-icon" title="Logout"><i data-lucide="log-out"></i></button>
-        </div>
-        <button id="themeToggleBtn" onclick="toggleDarkMode()" class="btn btn-secondary btn-sm" style="margin-top: 10px; width: 100%;">
-          🌙 Dark Mode
-        </button>
-      </div>
-    </aside>
-
-    <main class="main-content">
-
-      <div id="notification-banner" class="notification-banner">
-        <div class="flex-between">
-          <span id="notification-text">🔔 Notification: System Maintenance scheduled for midnight.</span>
-          <button onclick="dismissNotification()" class="btn-icon">&times;</button>
-        </div>
-      </div>
-
-      <section id="dashboard-tab" class="tab-content active">
-        <div class="header">
-          <h1>Enterprise Dashboard</h1>
-          <p class="text-muted">Real-time HR operations & organizational analytics</p>
-        </div>
-
-        <div class="stats-grid">
-          <div class="card stat-card">
-            <span class="text-muted">Total Employees</span>
-            <div class="stat-number" id="dash-total-emp">0</div>
-            <span class="stat-change">+12% this month</span>
-          </div>
-          <div class="card stat-card">
-            <span class="text-muted">Present Today</span>
-            <div class="stat-number" id="dash-present-emp">0</div>
-            <span class="stat-change" style="color: var(--success);" id="dash-present-rate">0% rate</span>
-          </div>
-          <div class="card stat-card">
-            <span class="text-muted">Employees on Leave</span>
-            <div class="stat-number" id="dash-leave-emp">0</div>
-            <span class="stat-change" style="color: var(--warning);" id="dash-pending-leave">0 Pending</span>
-          </div>
-          <div class="card stat-card">
-            <span class="text-muted">Monthly Payroll</span>
-            <div class="stat-number" id="dash-payroll-total">$0</div>
-            <span class="stat-change">Automated Engine</span>
-          </div>
-        </div>
-
-        <div class="dashboard-split" style="margin-top: 1.5rem;">
-          <div class="card">
-            <h3>Department Employee Count</h3>
-            <div id="departmentStatsList" style="margin-top: 1rem;"></div>
-          </div>
-          <div class="card">
-            <h3>Recent System Activities</h3>
-            <div id="activityFeedList" class="leave-list" style="margin-top: 1rem;"></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="employees-tab" class="tab-content">
-        <div class="header flex-between">
-          <div>
-            <h1>Employee Directory</h1>
-            <p class="text-muted">Store, filter, and manage staff records</p>
-          </div>
-          <button class="btn btn-primary admin-hr-only" onclick="toggleEmpModal(true)">+ Add Employee</button>
-        </div>
-
-        <div class="card flex-between" style="gap: 1rem; margin-bottom: 1.5rem;">
-          <input type="text" id="empSearchInput" placeholder="Search by name, email, or ID..." onkeyup="filterEmployees()" class="form-control" style="flex: 1;" />
-          <select id="empDeptFilter" onchange="filterEmployees()" class="form-control" style="width: 200px;">
-            <option value="All">All Departments</option>
-          </select>
-        </div>
-
-        <div class="employee-grid" id="employeeGrid"></div>
-      </section>
-
-      <section id="departments-tab" class="tab-content">
-        <div class="header flex-between">
-          <div>
-            <h1>Department Management</h1>
-            <p class="text-muted">Manage department structures, managers, and budgets</p>
-          </div>
-          <button class="btn btn-primary admin-only" onclick="toggleDeptModal(true)">+ Create Department</button>
-        </div>
-
-        <div class="card table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Department Name</th>
-                <th>Manager</th>
-                <th>Employees</th>
-                <th>Budget</th>
-                <th class="admin-only">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="departmentsTable"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="attendance-tab" class="tab-content">
-        <div class="header">
-          <h1>Attendance Management</h1>
-          <p class="text-muted">GPS/Mobile simulated Check-in, Working Hours, and Overtime engine</p>
-        </div>
-
-        <div class="card flex-between">
-          <div>
-            <h3>Daily Attendance Portal</h3>
-            <p id="clockStatus" class="text-muted">You are currently clocked out.</p>
-          </div>
-          <button id="clockBtn" class="btn btn-success" onclick="toggleClock()">Clock In</button>
-        </div>
-
-        <div class="card table-container" style="margin-top: 1.5rem;">
-          <h3>Attendance Logs</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Check In</th>
-                <th>Check Out</th>
-                <th>Working Hours</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="attendanceTable"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="leave-tab" class="tab-content">
-        <div class="header flex-between">
-          <div>
-            <h1>Leave Request System</h1>
-            <p class="text-muted">Manage Casual, Sick, Paid, and Unpaid leaves</p>
-          </div>
-          <button class="btn btn-primary" onclick="toggleLeaveModal(true)">+ Apply for Leave</button>
-        </div>
-
-        <div class="stats-grid" style="margin-bottom: 1.5rem;">
-          <div class="card"><span>Casual Leave Balance</span><h2 id="bal-casual">12 / 12</h2></div>
-          <div class="card"><span>Sick Leave Balance</span><h2 id="bal-sick">10 / 10</h2></div>
-          <div class="card"><span>Paid Leave Balance</span><h2 id="bal-paid">20 / 20</h2></div>
-        </div>
-
-        <div class="card">
-          <h3>Leave Applications</h3>
-          <div id="leaveList" class="leave-list" style="margin-top: 1rem;"></div>
-        </div>
-      </section>
-
-      <section id="payroll-tab" class="tab-content">
-        <div class="header flex-between">
-          <div>
-            <h1>Payroll Engine</h1>
-            <p class="text-muted">Automatic salary calculations, bonuses, deductions, and payslip generation</p>
-          </div>
-          <button class="btn btn-primary admin-hr-only" onclick="processPayroll()">⚡ Process Monthly Payroll</button>
-        </div>
-
-        <div class="card table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Employee</th>
-                <th>Basic Salary</th>
-                <th>Allowances</th>
-                <th>Tax Deductions</th>
-                <th>Net Salary</th>
-                <th>Status</th>
-                <th>Payslip</th>
-              </tr>
-            </thead>
-            <tbody id="payrollTable"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="performance-tab" class="tab-content">
-        <div class="header flex-between">
-          <div>
-            <h1>Performance Reviews & Goals</h1>
-            <p class="text-muted">Employee appraisal system, ratings, and feedback</p>
-          </div>
-          <button class="btn btn-primary admin-hr-only" onclick="toggleReviewModal(true)">+ New Review</button>
-        </div>
-
-        <div class="card table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Employee</th>
-                <th>Reviewer</th>
-                <th>Rating</th>
-                <th>Feedback</th>
-                <th>Goal Status</th>
-              </tr>
-            </thead>
-            <tbody id="performanceTable"></tbody>
-          </table>
-        </div>
-      </section>
-
-    </main>
-  </div>
-
-  <div id="empModal" class="modal-overlay">
-    <div class="card modal-box">
-      <h2 id="empModalTitle">Add New Employee</h2>
-      <form id="empForm" onsubmit="saveEmployee(event)">
-        <input type="hidden" id="empEditId" />
-        <div class="form-group"><label>Full Name</label><input type="text" id="empName" class="form-control" required /></div>
-        <div class="form-group"><label>Email Address</label><input type="email" id="empEmail" class="form-control" required /></div>
-        <div class="form-group"><label>Phone Number</label><input type="text" id="empPhone" class="form-control" required /></div>
-        <div class="form-group"><label>Department</label><select id="empDept" class="form-control"></select></div>
-        <div class="form-group"><label>Designation</label><input type="text" id="empRole" class="form-control" required /></div>
-        <div class="form-group"><label>Base Monthly Salary ($)</label><input type="number" id="empSalary" class="form-control" required /></div>
-        <div class="flex-end" style="gap: 10px; margin-top: 1rem;">
-          <button type="button" class="btn btn-secondary" onclick="toggleEmpModal(false)">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Record</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="deptModal" class="modal-overlay">
-    <div class="card modal-box">
-      <h2>Create Department</h2>
-      <form onsubmit="saveDepartment(event)">
-        <div class="form-group"><label>Department Name</label><input type="text" id="deptName" class="form-control" required /></div>
-        <div class="form-group"><label>Assign Manager</label><input type="text" id="deptManager" class="form-control" required /></div>
-        <div class="form-group"><label>Annual Budget ($)</label><input type="number" id="deptBudget" class="form-control" required /></div>
-        <div class="flex-end" style="gap: 10px; margin-top: 1rem;">
-          <button type="button" class="btn btn-secondary" onclick="toggleDeptModal(false)">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Department</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="leaveModal" class="modal-overlay">
-    <div class="card modal-box">
-      <h2>Apply for Leave</h2>
-      <form onsubmit="applyLeave(event)">
-        <div class="form-group">
-          <label>Leave Type</label>
-          <select id="leaveType" class="form-control">
-            <option value="Casual Leave">Casual Leave</option>
-            <option value="Sick Leave">Sick Leave</option>
-            <option value="Paid Leave">Paid Leave</option>
-            <option value="Unpaid Leave">Unpaid Leave</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Start Date</label><input type="date" id="leaveStart" class="form-control" required /></div>
-        <div class="form-group"><label>End Date</label><input type="date" id="leaveEnd" class="form-control" required /></div>
-        <div class="form-group"><label>Reason</label><textarea id="leaveReason" class="form-control" rows="3" required></textarea></div>
-        <div class="flex-end" style="gap: 10px; margin-top: 1rem;">
-          <button type="button" class="btn btn-secondary" onclick="toggleLeaveModal(false)">Cancel</button>
-          <button type="submit" class="btn btn-primary">Submit Application</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="reviewModal" class="modal-overlay">
-    <div class="card modal-box">
-      <h2>Conduct Performance Review</h2>
-      <form onsubmit="saveReview(event)">
-        <div class="form-group"><label>Employee</label><select id="reviewEmpSelect" class="form-control"></select></div>
-        <div class="form-group"><label>Rating (1 - 5 Stars)</label><input type="number" min="1" max="5" id="reviewRating" class="form-control" required /></div>
-        <div class="form-group"><label>Manager Feedback</label><textarea id="reviewFeedback" class="form-control" rows="3" required></textarea></div>
-        <div class="form-group"><label>Goal Set</label><input type="text" id="reviewGoal" class="form-control" placeholder="e.g. Complete AWS Certification" required /></div>
-        <div class="flex-end" style="gap: 10px; margin-top: 1rem;">
-          <button type="button" class="btn btn-secondary" onclick="toggleReviewModal(false)">Cancel</button>
-          <button type="submit" class="btn btn-primary">Submit Review</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
-</body>
-</html>
+</div>
+<div id="app" class="app hidden">
+<aside class="sidebar">
+  <div class="brand"><span class="brand-mark">E</span><div><b>EMS</b><small>Enterprise HR</small></div></div>
+  <nav id="nav">
+    <button data-page="dashboard" class="active">▦ <span>Dashboard</span></button>
+    <button data-page="employees" data-roles="Admin,HR Manager">♙ <span>Employees</span></button>
+    <button data-page="departments" data-roles="Admin,HR Manager">▤ <span>Departments</span></button>
+    <button data-page="attendance">◷ <span>Attendance</span></button>
+    <button data-page="leave">◫ <span>Leave</span><em id="leaveBadge">0</em></button>
+    <button data-page="payroll" data-roles="Admin,HR Manager">＄ <span>Payroll</span></button>
+    <button data-page="performance">★ <span>Performance</span></button>
+    <button data-page="reports" data-roles="Admin,HR Manager">◒ <span>Reports</span></button>
+    <button data-page="notifications">♢ <span>Notifications</span><em id="notifBadge">0</em></button>
+  </nav>
+  <div class="sidebar-bottom"><button id="themeBtn">☾ <span>Dark mode</span></button><button id="logoutBtn">↪ <span>Sign out</span></button></div>
+</aside>
+<main class="main">
+<header class="topbar"><button id="menuBtn" class="icon">☰</button><div><h2 id="pageTitle">Dashboard</h2><small id="dateNow"></small></div><div class="top-actions"><button class="icon" data-page-jump="notifications">♢<i id="topNotif"></i></button><div class="user"><span id="avatar">A</span><div><b id="userName">Admin</b><small id="userRole">Administrator</small></div></div></div></header>
+<section id="page-dashboard" class="page active"><div class="hero"><div><span class="eyebrow">WORKFORCE OVERVIEW</span><h1>Good day, <span id="heroName">Admin</span>.</h1><p>Monitor your organization and keep HR operations moving.</p></div><button class="primary" data-page-jump="employees">+ Add employee</button></div><div class="stats"><article><span>Total employees</span><strong id="sEmployees">0</strong><small>Active workforce</small></article><article><span>Present today</span><strong id="sPresent">0</strong><small id="sPresentRate">0% attendance rate</small></article><article><span>On leave</span><strong id="sLeave">0</strong><small id="sPending">0 pending requests</small></article><article><span>Monthly payroll</span><strong id="sPayroll">KSh 0</strong><small>Estimated gross</small></article></div><div class="grid2"><article class="card"><div class="card-head"><h3>Department distribution</h3><span class="muted">Headcount</span></div><div id="deptBars"></div></article><article class="card"><div class="card-head"><h3>Recent activity</h3><button class="link" data-page-jump="notifications">View all</button></div><div id="activity"></div></article></div></section>
+<section id="page-employees" class="page"><div class="section-head"><div><h1>Employees</h1><p>Search, create and manage employee records.</p></div><button class="primary" id="addEmployee">+ Add employee</button></div><div class="toolbar card"><input id="empSearch" placeholder="Search name, ID, email or designation…"><select id="empDept"><option value="">All departments</option></select><select id="empStatus"><option value="">All statuses</option><option>Active</option><option>On Leave</option><option>Inactive</option></select></div><div id="employeeGrid" class="employee-grid"></div></section>
+<section id="page-departments" class="page"><div class="section-head"><div><h1>Departments</h1><p>Organize teams, managers and budgets.</p></div><button class="primary" id="addDepartment">+ New department</button></div><div class="card table-wrap"><table><thead><tr><th>Department</th><th>Manager</th><th>Employees</th><th>Annual budget</th><th></th></tr></thead><tbody id="departmentTable"></tbody></table></div></section>
+<section id="page-attendance" class="page"><div class="section-head"><div><h1>Attendance</h1><p>Track check-ins, hours, overtime and status.</p></div></div><div class="attendance-clock card"><div><span class="eyebrow">TODAY</span><h2 id="clockTime">00:00:00</h2><p id="clockStatus">You are currently clocked out.</p></div><button id="clockBtn" class="success">Clock in</button></div><div class="card table-wrap"><div class="card-head"><h3>Attendance history</h3><button class="secondary" id="exportAttendance">Export CSV</button></div><table><thead><tr><th>Date</th><th>Employee</th><th>Check in</th><th>Check out</th><th>Hours</th><th>Status</th></tr></thead><tbody id="attendanceTable"></tbody></table></div></section>
+<section id="page-leave" class="page"><div class="section-head"><div><h1>Leave management</h1><p>Apply for leave and process employee requests.</p></div><button class="primary" id="applyLeave">+ Apply for leave</button></div><div class="leave-balances" id="balances"></div><div class="card table-wrap"><table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead><tbody id="leaveTable"></tbody></table></div></section>
+<section id="page-payroll" class="page"><div class="section-head"><div><h1>Payroll</h1><p>Calculate gross pay, deductions and net salary.</p></div><div><button class="secondary" id="exportPayroll">Export CSV</button> <button class="primary" id="processPayroll">Process payroll</button></div></div><div class="stats"><article><span>Gross payroll</span><strong id="grossPayroll">KSh 0</strong></article><article><span>Allowances</span><strong id="allowances">KSh 0</strong></article><article><span>Deductions</span><strong id="deductions">KSh 0</strong></article><article><span>Net payroll</span><strong id="netPayroll">KSh 0</strong></article></div><div class="card table-wrap"><table><thead><tr><th>Employee</th><th>Basic</th><th>Allowances</th><th>Deductions</th><th>Net salary</th><th>Status</th><th></th></tr></thead><tbody id="payrollTable"></tbody></table></div></section>
+<section id="page-performance" class="page"><div class="section-head"><div><h1>Performance</h1><p>Reviews, ratings, feedback and employee goals.</p></div><button class="primary" id="addReview">+ New review</button></div><div class="card table-wrap"><table><thead><tr><th>Employee</th><th>Reviewer</th><th>Rating</th><th>Goal</th><th>Feedback</th><th></th></tr></thead><tbody id="performanceTable"></tbody></table></div></section>
+<section id="page-reports" class="page"><div class="section-head"><div><h1>Reports & analytics</h1><p>Operational metrics for HR and leadership.</p></div><button class="primary" id="exportReport">Export report</button></div><div class="grid2"><article class="card"><h3>Workforce snapshot</h3><div id="reportStats" class="report-list"></div></article><article class="card"><h3>Payroll by department</h3><div id="payrollDept"></div></article></div></section>
+<section id="page-notifications" class="page"><div class="section-head"><div><h1>Notifications</h1><p>Leave decisions, payroll events and system activity.</p></div><button class="secondary" id="markRead">Mark all read</button></div><div id="notifications" class="notification-list"></div></section>
+</main></div>
+<div id="modal" class="modal hidden"><div class="modal-box"><div class="modal-head"><h2 id="modalTitle">Modal</h2><button class="icon" id="closeModal">×</button></div><form id="modalForm"></form></div></div>
+<script src="script.js"></script>
+</body></html>
