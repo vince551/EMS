@@ -1,0 +1,104 @@
+generator client { provider = "prisma-client-js" }
+
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum Role { ADMIN HR EMPLOYEE }
+enum EmployeeStatus { ACTIVE INACTIVE ON_LEAVE }
+enum LeaveType { CASUAL SICK PAID UNPAID }
+enum LeaveStatus { PENDING APPROVED REJECTED CANCELLED }
+enum AttendanceStatus { PRESENT ABSENT LATE ON_LEAVE }
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(EMPLOYEE)
+  employee     Employee?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Department {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  manager     String?
+  budget      Decimal    @db.Decimal(14,2)
+  employees   Employee[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Employee {
+  id           String          @id @default(cuid())
+  employeeId   String          @unique
+  fullName     String
+  email        String          @unique
+  phone        String?
+  designation  String
+  joiningDate  DateTime
+  salary       Decimal         @db.Decimal(14,2)
+  status       EmployeeStatus  @default(ACTIVE)
+  departmentId String?
+  department   Department?     @relation(fields:[departmentId], references:[id], onDelete:SetNull)
+  userId       String?         @unique
+  user         User?           @relation(fields:[userId], references:[id], onDelete:SetNull)
+  attendance   Attendance[]
+  leaves       LeaveRequest[]
+  payroll      Payroll[]
+  reviews      PerformanceReview[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Attendance {
+  id         String           @id @default(cuid())
+  employeeId String
+  employee   Employee         @relation(fields:[employeeId], references:[id], onDelete:Cascade)
+  date       DateTime
+  checkIn    DateTime?
+  checkOut   DateTime?
+  hours      Decimal          @default(0) @db.Decimal(5,2)
+  overtime   Decimal          @default(0) @db.Decimal(5,2)
+  status     AttendanceStatus @default(PRESENT)
+  @@unique([employeeId,date])
+}
+
+model LeaveRequest {
+  id         String      @id @default(cuid())
+  employeeId String
+  employee   Employee    @relation(fields:[employeeId], references:[id], onDelete:Cascade)
+  type       LeaveType
+  startDate  DateTime
+  endDate    DateTime
+  days       Int
+  reason     String
+  status     LeaveStatus @default(PENDING)
+  reviewedAt DateTime?
+  createdAt  DateTime    @default(now())
+}
+
+model Payroll {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields:[employeeId], references:[id], onDelete:Cascade)
+  period      String
+  basic       Decimal  @db.Decimal(14,2)
+  allowances Decimal  @default(0) @db.Decimal(14,2)
+  bonuses     Decimal  @default(0) @db.Decimal(14,2)
+  deductions  Decimal  @default(0) @db.Decimal(14,2)
+  tax         Decimal  @default(0) @db.Decimal(14,2)
+  net         Decimal  @db.Decimal(14,2)
+  processedAt DateTime?
+  @@unique([employeeId,period])
+}
+
+model PerformanceReview {
+  id         String   @id @default(cuid())
+  employeeId String
+  employee   Employee @relation(fields:[employeeId], references:[id], onDelete:Cascade)
+  reviewer   String
+  rating     Int
+  goal       String
+  feedback   String
+  createdAt  DateTime @default(now())
+}
